@@ -3,6 +3,7 @@
 
 #include <string>
 #include <functional>
+#include <type_traits>
 #include <boost/format.hpp>
 #include "util/enumstrings.hpp"
 
@@ -49,7 +50,10 @@ public:
   
   virtual ~Format() { }
 
-  template <typename Enum>
+  template <
+    typename Enum,
+    typename = typename std::enable_if<std::is_enum<Enum>::value>::type
+  >
   Format& operator()(Enum e)
   {
     format = CustomFormat(util::EnumToString(e));
@@ -57,7 +61,12 @@ public:
     return *this;
   }
 
-  template <typename Enum, typename T, typename... Args>
+  template <
+    typename Enum,
+    typename T, 
+    typename... Args,
+    typename = typename std::enable_if<std::is_enum<Enum>::value>::type
+  >
   Format& operator()(Enum e, const T& arg, const Args&... args)
   {
     format = CustomFormat(util::EnumToString(e)) % arg;

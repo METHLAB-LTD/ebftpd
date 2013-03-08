@@ -140,7 +140,8 @@ void RETRCommand::Execute()
   if (data.Protection()) os << " using TLS/SSL";
   os << ".";
   control.Reply(ftp::TransferStatusOkay, os.str());
-
+  control.FlushReply();
+  
   try
   {
     data.Open(ftp::TransferType::Download);

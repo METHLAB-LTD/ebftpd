@@ -191,11 +191,13 @@ void ClientImpl::DisplayBanner()
     if (util::ReadFileToString(config.Banner(), banner))
     {
       control.Reply(ftp::ServiceReady, banner);
+      control.FlushReply();
       return;
     }
   }
 
   control.Format(ftp::ServiceReady, config.LoginPrompt());
+  control.FlushReply();
 }
 
 void ClientImpl::IdleReset(std::string commandLine)
@@ -212,7 +214,7 @@ void ClientImpl::ExecuteCommand(const std::string& commandLine)
   if (commandLine.empty()) return;
   std::vector<std::string> args;
   util::Split(args, commandLine, " ", true);
-  if (args.empty()) throw ProtocolError("Empty command.");
+  if (args.empty()) return;
   
   std::string argStr(commandLine.substr(args[0].length()));
   util::Trim(argStr);
@@ -250,7 +252,7 @@ void ClientImpl::ExecuteCommand(const std::string& commandLine)
       try
       {
         command->Execute();
-
+        
         if (state == ClientState::LoggedIn)
           exec::Cscripts(parent, args[0], currentCommand, exec::CscriptType::Post, 
                   ftp::ActionNotOkay);
@@ -268,6 +270,7 @@ void ClientImpl::ExecuteCommand(const std::string& commandLine)
     }
   }
   
+  control.FlushReply();
   currentCommand = "";
   
   if (State() == ClientState::LoggedIn)
